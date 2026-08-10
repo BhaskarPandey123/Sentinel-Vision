@@ -1,0 +1,66 @@
+============================================================
+MEDIA ANALYSIS REPORT
+Generated : 2026-08-10 13:43:50
+Files analyzed : 2
+============================================================
+
+IMAGE: sample.jpg
+-----------------
+
+File path      : /home/claude/sample.jpg
+File size      : 33.20 KB
+Last modified  : 2026-08-10 13:43:15.724893
+Format         : JPEG
+Dimensions     : 800 x 600 px
+Color mode     : RGB
+Megapixels     : 0.48 MP
+Aspect ratio   : 1.333 (~4:3)
+
+Color Analysis
+--------------
+
+Average color  : RGB(75, 133, 181)
+Brightness     : 130/255 (medium)
+Dominant colors: RGB(70, 130, 180), RGB(68, 129, 180), RGB(70, 130, 181)
+
+EXIF / Camera Metadata
+----------------------
+
+No EXIF metadata found (image may be a screenshot, edited, or stripped of metadata).
+
+Detected Text (OCR)
+-------------------
+
+No readable text detected in the image.
+
+============================================================
+
+VIDEO: sample.mp4
+-----------------
+
+File path      : /home/claude/sample.mp4
+File size      : 40.73 KB
+Last modified  : 2026-08-10 13:43:19.015563
+
+Technical Details
+-----------------
+
+Resolution     : 320 x 240 px
+Aspect ratio   : ~4:3
+Frame rate     : 24.00 fps
+Frame count    : 48
+Duration       : 2s
+Codec (fourcc) : FMP4
+
+Content Sampling (brightness across timeline)
+---------------------------------------------
+
+  t=0s         brightness=102.0/255
+  t=0s         brightness=108.0/255
+  t=0s         brightness=115.0/255
+  t=1s         brightness=122.0/255
+  t=1s         brightness=129.0/255
+
+Overall average brightness: 115.2/255 (medium)
+
+============================================================
