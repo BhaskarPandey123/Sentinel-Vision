@@ -1,37 +1,10 @@
 #!/usr/bin/env python3
-"""
-Media Analyzer
-================
-Accepts image and video files, reads/inspects them, and writes a clean,
-human-readable report (.txt) describing what was found: file info,
-technical metadata, EXIF/camera data (images), video stream details,
-color/brightness analysis, and (optionally) any text detected via OCR.
-
-USAGE
------
-    python3 media_analyzer.py <file_or_folder> [<file_or_folder> ...] [-o output.txt]
-
-Examples:
-    python3 media_analyzer.py photo.jpg
-    python3 media_analyzer.py clip.mp4 photo.png -o report.txt
-    python3 media_analyzer.py ./my_media_folder/
-
-Supported:
-    Images: .jpg .jpeg .png .bmp .gif .tiff .webp
-    Video:  .mp4 .mov .avi .mkv .webm .m4v
-
-Dependencies:
-    pip install pillow opencv-python-headless exifread
-    (OCR is optional: pip install pytesseract  + the `tesseract-ocr` system binary)
-"""
-
 import os
 import sys
 import argparse
 import datetime
 from pathlib import Path
 
-# ---- Optional / required third-party libraries -----------------------------
 try:
     from PIL import Image, ExifTags
 except ImportError:
@@ -59,12 +32,7 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"}
 VIDEO_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"}
 
 
-# ------------------------------------------------------------------------- #
-# Helpers
-# ------------------------------------------------------------------------- #
-
 def human_size(num_bytes):
-    """Convert bytes to a human-readable string."""
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if num_bytes < 1024:
             return f"{num_bytes:.2f} {unit}"
@@ -73,7 +41,6 @@ def human_size(num_bytes):
 
 
 def human_duration(seconds):
-    """Convert seconds to H:MM:SS."""
     seconds = int(seconds)
     h, rem = divmod(seconds, 3600)
     m, s = divmod(rem, 60)
@@ -88,10 +55,6 @@ def section(title):
     line = "-" * len(title)
     return f"\n{title}\n{line}\n"
 
-
-# ------------------------------------------------------------------------- #
-# Image analysis
-# ------------------------------------------------------------------------- #
 
 def analyze_image(path: Path) -> str:
     out = []
@@ -116,7 +79,6 @@ def analyze_image(path: Path) -> str:
             aspect = img.width / img.height if img.height else 0
             out.append(f"Aspect ratio   : {aspect:.3f} (~{approximate_ratio(img.width, img.height)})")
 
-            # --- Basic color/brightness analysis ---
             rgb_img = img.convert("RGB")
             small = rgb_img.resize((100, 100))
             pixels = list(small.getdata()) if hasattr(small, "getdata") else []
@@ -131,9 +93,8 @@ def analyze_image(path: Path) -> str:
                         f"({'dark' if brightness < 85 else 'medium' if brightness < 170 else 'bright'})")
 
             dominant = get_dominant_colors(small, n=3)
-            out.append("Dominant colors: " + ", ".join(f"RGB{c}" for c in dominant))
+            out.append("Dominant colors: " + (", ".join(f"RGB{c}" for c in dominant) if dominant else "N/A"))
 
-            # --- EXIF metadata ---
             out.append(section("EXIF / Camera Metadata"))
             exif_text = extract_exif_pillow(img)
             if exif_text:
@@ -141,14 +102,13 @@ def analyze_image(path: Path) -> str:
             else:
                 out.append("No EXIF metadata found (image may be a screenshot, edited, or stripped of metadata).")
 
-            # --- OCR ---
             if OCR_AVAILABLE:
                 out.append(section("Detected Text (OCR)"))
                 try:
                     text = pytesseract.image_to_string(rgb_img).strip()
                     out.append(text if text else "No readable text detected in the image.")
-                except Exception as e:
-                    out.append(f"OCR failed: {e}")
+                except Exception:
+                    out.append("OCR engine not installed on server environment.")
 
     except Exception as e:
         out.append(f"\n[ERROR reading image: {e}]")
@@ -157,7 +117,6 @@ def analyze_image(path: Path) -> str:
 
 
 def approximate_ratio(w, h):
-    """Reduce width:height to a simple ratio like 16:9."""
     def gcd(a, b):
         while b:
             a, b = b, a % b
@@ -167,7 +126,6 @@ def approximate_ratio(w, h):
 
 
 def get_dominant_colors(img, n=3):
-    """Return the n most common colors in a small RGB image."""
     colors = img.getcolors(maxcolors=100 * 100)
     if not colors:
         return []
@@ -176,7 +134,6 @@ def get_dominant_colors(img, n=3):
 
 
 def extract_exif_pillow(img) -> list:
-    """Human-readable EXIF tags using Pillow."""
     lines = []
     try:
         exif_data = img._getexif() if hasattr(img, "_getexif") else None
@@ -203,10 +160,6 @@ def extract_exif_pillow(img) -> list:
         pass
     return lines
 
-
-# ------------------------------------------------------------------------- #
-# Video analysis
-# ------------------------------------------------------------------------- #
 
 def analyze_video(path: Path) -> str:
     out = []
@@ -243,7 +196,6 @@ def analyze_video(path: Path) -> str:
         out.append(f"Duration       : {human_duration(duration)}")
         out.append(f"Codec (fourcc) : {fourcc if fourcc.strip() else 'unknown'}")
 
-        # --- Sample frames: brightness over time ---
         out.append(section("Content Sampling (brightness across timeline)"))
         samples = 5
         brightness_readings = []
@@ -275,12 +227,7 @@ def analyze_video(path: Path) -> str:
     return "\n".join(out)
 
 
-# ------------------------------------------------------------------------- #
-# Driver
-# ------------------------------------------------------------------------- #
-
 def gather_files(paths):
-    """Expand folders into individual supported media files."""
     files = []
     for p in paths:
         p = Path(p)
